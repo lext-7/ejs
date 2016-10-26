@@ -57,6 +57,21 @@
  * @property {Object}  [scope=this]
  * Alias of `context`. Deprecated.
  *
+ * @property {Boolean}  [loadOnlyOnce=false]
+ * **New** Once template is included, included content won't change no matter wether template is changed.
+ *
+ *
+ * @property {Array<String>}  [precompile=undefined]
+ * **New** Precompile templates so that you can just include template without compilation in runtime.
+ *
+ *
+ * @property {Object}  [pages=undefined]
+ * **New** Virtual template file constructure when to include.
+ *
+ *
+ * @property {Boolean}  [usePages=false]
+ * **New** Load template from pages object.
+ *
  * @static
  * @global
  */

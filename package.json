@@ -39,6 +39,7 @@
     "lint": "eslint \"**/*.js\" Jakefile",
     "coverage": "istanbul cover node_modules/mocha/bin/_mocha",
     "doc": "jake doc",
-    "devdoc": "jake doc[dev]"
+    "devdoc": "jake doc[dev]",
+    "build": "jake build"
   }
 }

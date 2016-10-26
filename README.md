@@ -78,6 +78,10 @@ Therefore, we do not recommend using this shortcut.
     the middle of a line).
   - `escape`          The escaping function used with `<%=` construct. It is
     used in rendering and is `.toString()`ed in the generation of client functions. (By default escapes XML).
+  - `loadOnlyOnce`          **New** Once template is included, included content won't change no matter wether template is changed.
+  - `precompile`          **New** Precompile templates so that you can just include template without compilation in runtime.
+  - `pages`          **New** Virtual template file constructure when to include.
+  - `usePages`          **New** Load template from pages object.
 
 This project uses [JSDoc](http://usejsdoc.org/). For the full public API
 documentation, clone the repository and run `npm run doc`. This will run JSDoc
@@ -187,6 +191,78 @@ the repository and running `jake build` (or `$(npm bin)/jake build` if jake is
 not installed globally).
 
 Include one of these files on your page, and `ejs` should be available globally.
+
+## **New** Load only once
+
+```javascript
+test('load only once', function () {
+  fs.writeFileSync(__dirname + '/tmp/include.ejs', '<p>Old</p>');
+  var file = 'test/fixtures/include_cache.ejs';
+  var options = {filename: file, loadOnlyOnce: true};
+  var out = ejs.compile(fixture('include_cache.ejs'), options);
+  assert.equal(out(), '<p>Old</p>\n');
+  // although template file content is changed, this change won't show in include fn.
+  fs.writeFileSync(__dirname + '/tmp/include.ejs', '<p>New</p>');
+  // still <p>Old</p>\n
+  assert.equal(out(), '<p>Old</p>\n');
+});
+```
+
+## **New** Use Pages
+`pages` object can be used as virtual template file system. Object key is filename name without extension and directory level. Object value is template string. Therefore, you can use ejs without fs.    
+`pages` should be used with `usePages: true`  
+
+```javascript
+var template = "<% include b %>";
+var expected = 'hello ejs';
+var options = {
+  usePages: true,
+  pages: {
+    b: 'hello <%= name %>'
+  },
+  filename: 'a'
+};
+assert.equal(ejs.render(template, {name: 'ejs'}, options),
+    expected);
+```
+
+## **New** Precompile
+Precompile templates so that it doesn't need to compile template in runtime rather than using compiled including function directly.  
+It should be used with `loadOnlyOnce: true`, which means it won't trace the template content changes.  
+
+```javascript
+test('use include directive by pages', function () {
+  var template = "precompile <%- include('hello-world') %>";
+  var fileContent = fs.readFileSync('test/fixtures/hello-world.ejs', 'utf8');
+  var expected = "precompile " + fileContent;
+  var render = ejs.compile(template, {
+    precompile: ['hello-world'],
+    filename: 'test/fixtures/precompile.ejs',
+    loadOnlyOnce: true
+  });
+  fs.writeFileSync('test/fixtures/hello-world.ejs', 'hello world');
+  var output = render();
+  assert.equal(output, expected);
+  fs.writeFileSync('test/fixtures/hello-world.ejs', fileContent);
+});
+```
+
+## **New** Client-side include
+You can use include function with `client:true` reply on precompilation.  
+
+```javascript
+test('client include() with precompile', function() {
+  var file = 'test/fixtures/include-simple.ejs';
+  var template = fixture('include-simple.ejs');
+  var expected = fixture('include-simple.html');
+  var options = {filename: file, client: true, precompile: ['hello-world']};
+  var str = ejs.compile(template, options);
+  if (!process.env.running_under_istanbul) {
+    eval('var preFn = ' + str);
+    assert.equal(preFn(), expected);
+  }
+});
+```
 
 ### Example
 
